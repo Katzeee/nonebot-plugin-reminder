@@ -1,5 +1,6 @@
 from pathlib import Path
 import nonebot
+from nonebot import require
 
 try:
     scheduler = require("nonebot_plugin_apscheduler").scheduler
@@ -11,6 +12,9 @@ JOBS_FILE = Path() / "data" / "jobs.json"
 def job_printf(content:str):
     bot = nonebot.get_bot()
     bot.send_group_msg(group_id=742827356, message=eval(f'f"""{content}"""'))
+
+def parse_cron(job_desc: dict):
+    pass
 
 def parse_interval(job_desc: dict):
     weeks = job_desc.get("weeks") or 0

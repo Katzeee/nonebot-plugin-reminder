@@ -9,6 +9,8 @@ import nonebot
 import io
 from .config import Config
 from nonebot import on_command
+from .__utils__ import parse_interval, parse_cron, JOBS_FILE
+import json
 global_config = get_driver().config
 config = Config.parse_obj(global_config)
 
@@ -33,3 +35,13 @@ async def _():
     my_io = io.StringIO()
     scheduler.print_jobs(out=my_io)
     await listall.finish(my_io.getvalue())
+
+if scheduler:
+    logger.info("Start parsing jobs..")
+    with open(JOBS_FILE) as f:
+        jobs_json = json.load(f)
+    for key, value in jobs_json.items():
+        if value["type"] == "cron":
+            parse_cron(value)
+        elif value["type"] == "interval":
+            parse_interval(value)
