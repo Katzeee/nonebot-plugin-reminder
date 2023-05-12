@@ -9,9 +9,12 @@ except Exception:
 
 JOBS_FILE = Path() / "data" / "jobs.json"
 
-def job_printf(content:str):
+async def job_printf(content:str):
     bot = nonebot.get_bot()
-    bot.send_group_msg(group_id=742827356, message=eval(f'f"""{content}"""'))
+    try:
+        await bot.send_group_msg(group_id=742827356, message=eval(f'f"""{content}"""'))
+    except Exception as e:
+        await bot.send_group_msg(group_id=742827356, message=e)
 
 def parse_cron(job_desc: dict):
     pass
