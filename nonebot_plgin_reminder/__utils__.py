@@ -9,15 +9,33 @@ except Exception:
 
 JOBS_FILE = Path() / "data" / "jobs.json"
 
-async def job_printf(content:str):
+
+async def job_printf(content: str):
     bot = nonebot.get_bot()
     try:
         await bot.send_group_msg(group_id=742827356, message=eval(f'f"""{content}"""'))
     except Exception as e:
-        await bot.send_group_msg(group_id=742827356, message=e)
+        await bot.send_group_msg(group_id=742827356, message=repr(e))
+
+
+# https://blog.csdn.net/kobepaul123/article/details/123616575
 
 def parse_cron(job_desc: dict):
-    pass
+    year = job_desc.get("year")
+    month = job_desc.get("month")
+    day = job_desc.get("day")
+    week = job_desc.get("week")
+    day_of_week = job_desc.get("day_of_week")
+    hour = job_desc.get("hour")
+    minute = job_desc.get("minute")
+    second = job_desc.get("second")
+    start_date = job_desc.get("start_date")
+    end_date = job_desc.get("end_date")
+    jitter = job_desc.get("jitter")
+    args = job_desc.get("args")
+    scheduler.add_job(job_printf, "cron", year=year, month=month, day=day, week=week, day_of_week=day_of_week, hour=hour,
+                      minute=minute, second=second, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+
 
 def parse_interval(job_desc: dict):
     weeks = job_desc.get("weeks") or 0
@@ -27,6 +45,7 @@ def parse_interval(job_desc: dict):
     seconds = job_desc.get("seconds") or 0
     start_date = job_desc.get("start_date")
     end_date = job_desc.get("end_date")
+    jitter = job_desc.get("jitter")
     args = job_desc.get("args")
-    scheduler.add_job(job_printf, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes, seconds=seconds, start_date=start_date, end_date=end_date, args=args)
-
+    scheduler.add_job(job_printf, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes,
+                      seconds=seconds, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
