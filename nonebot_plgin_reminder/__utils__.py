@@ -10,12 +10,20 @@ except Exception:
 JOBS_FILE = Path() / "data" / "jobs.json"
 
 
-async def job_printf(content: str):
+async def job_group_send(content: str, group_id):
     bot = nonebot.get_bot()
     try:
-        await bot.send_group_msg(group_id=742827356, message=eval(f'f"""{content}"""'))
+        await bot.send_group_msg(group_id=group_id, message=eval(f'f"""{content}"""'))
     except Exception as e:
-        await bot.send_group_msg(group_id=742827356, message=repr(e))
+        await bot.send_group_msg(group_id=group_id, message=repr(e))
+
+async def job_private_send(content: str, user_id):
+    bot = nonebot.get_bot()
+    try:
+        await bot.send_private_msg(user_id=user_id, message=eval(f'f"""{content}"""'))
+    except Exception as e:
+        await bot.send_private_msg(user_id=user_id, message=repr(e))
+
 
 
 # https://blog.csdn.net/kobepaul123/article/details/123616575
@@ -33,8 +41,21 @@ def parse_cron(job_desc: dict):
     end_date = job_desc.get("end_date")
     jitter = job_desc.get("jitter")
     args = job_desc.get("args")
-    scheduler.add_job(job_printf, "cron", year=year, month=month, day=day, week=week, day_of_week=day_of_week, hour=hour,
+    group_id = job_desc.get("group_id")
+    user_id = job_desc.get("private_id")
+    if group_id and user_id:
+        return
+    elif group_id:
+        args.append(group_id)
+        scheduler.add_job(job_group_send, "cron", year=year, month=month, day=day, week=week, day_of_week=day_of_week, hour=hour,
                       minute=minute, second=second, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+    elif user_id:
+        args.append(user_id)
+        scheduler.add_job(job_group_send, "cron", year=year, month=month, day=day, week=week, day_of_week=day_of_week, hour=hour,
+                      minute=minute, second=second, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+    else:
+        return
+
 
 
 def parse_interval(job_desc: dict):
@@ -47,5 +68,5 @@ def parse_interval(job_desc: dict):
     end_date = job_desc.get("end_date")
     jitter = job_desc.get("jitter")
     args = job_desc.get("args")
-    scheduler.add_job(job_printf, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes,
+    scheduler.add_job(job_group_send, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes,
                       seconds=seconds, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
