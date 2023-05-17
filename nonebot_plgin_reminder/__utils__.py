@@ -42,7 +42,7 @@ def parse_cron(job_desc: dict):
     jitter = job_desc.get("jitter")
     args = job_desc.get("args")
     group_id = job_desc.get("group_id")
-    user_id = job_desc.get("private_id")
+    user_id = job_desc.get("user_id")
     if group_id and user_id:
         return
     elif group_id:
@@ -51,7 +51,7 @@ def parse_cron(job_desc: dict):
                       minute=minute, second=second, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
     elif user_id:
         args.append(user_id)
-        scheduler.add_job(job_group_send, "cron", year=year, month=month, day=day, week=week, day_of_week=day_of_week, hour=hour,
+        scheduler.add_job(job_private_send, "cron", year=year, month=month, day=day, week=week, day_of_week=day_of_week, hour=hour,
                       minute=minute, second=second, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
     else:
         return
@@ -68,5 +68,17 @@ def parse_interval(job_desc: dict):
     end_date = job_desc.get("end_date")
     jitter = job_desc.get("jitter")
     args = job_desc.get("args")
-    scheduler.add_job(job_group_send, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes,
+    group_id = job_desc.get("group_id")
+    user_id = job_desc.get("user_id")
+    if group_id and user_id:
+        return
+    elif group_id:
+        args.append(group_id)
+        scheduler.add_job(job_group_send, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes,
                       seconds=seconds, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+    elif user_id:
+        args.append(user_id)
+        scheduler.add_job(job_private_send, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes,
+                      seconds=seconds, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+    else:
+        return
