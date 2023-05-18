@@ -9,9 +9,8 @@ import nonebot
 import io
 from .config import Config
 from nonebot import on_command
-from .__utils__ import parse_interval, parse_cron, JOBS_FILE
+from .__utils__ import parse_interval, parse_cron, JOBS_FILE, add_timer
 import json
-from nonebot.adapters.console import MessageEvent
 from nonebot.adapters import Message
 from nonebot.params import CommandArg
 
@@ -24,10 +23,20 @@ listall = on_command("list")
 
 
 @timer.handle()
-async def handle_function(event: MessageEvent, args: Message = CommandArg()):
+async def _(event, args: Message = CommandArg()):
     bot = nonebot.get_bot()
-    if location := args.extract_plain_text():
-        await timer.finish(f"今天{location}的天气是...")
+    if arg_str := args.extract_plain_text():
+        arg_list = arg_str.split(" ")
+        user_id = event.get_user_id()
+        minutes = arg_list[-1]
+        if len(arg_list) < 2 or not minutes.isdigit():
+            await timer.finish(f"========\nusage: /timer remind me 10\n========\nwhich means remind you after 50 minutes")
+        arg_list.pop()
+        content = " ".join(arg_list)
+        arg_list = [content, user_id]
+        # print(minutes, arg_list)
+        add_timer(minutes, arg_list)
+        await timer.finish(f"I will remind you \"{arg_list[0]}\" in {minutes} minutes!")
 
 
 async def test_func():

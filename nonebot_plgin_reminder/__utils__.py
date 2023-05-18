@@ -84,8 +84,8 @@ def parse_interval(job_desc: dict):
     else:
         return
 
-def add_timer(min, args):
+def add_timer(minutes, args):
     now = datetime.datetime.now()
-    timer = datetime.timedelta(minutes=min)
+    timer = datetime.timedelta(minutes=int(minutes))
     scheduler.add_job(job_private_send, "date", run_date=now+timer, args=args)
 
