@@ -11,18 +11,23 @@ from .config import Config
 from nonebot import on_command
 from .__utils__ import parse_interval, parse_cron, JOBS_FILE
 import json
+from nonebot.adapters.console import MessageEvent
+from nonebot.adapters import Message
+from nonebot.params import CommandArg
+
+
 global_config = get_driver().config
 config = Config.parse_obj(global_config)
 
-remindme = on_command("remindme")
+timer = on_command("timer")
 listall = on_command("list")
 
 
-@remindme.handle()
-async def handle_function():
+@timer.handle()
+async def handle_function(event: MessageEvent, args: Message = CommandArg()):
     bot = nonebot.get_bot()
-    await bot.send_private_msg(user_id=326578901, message=f"remind")
-    await remindme.finish("ti xing")
+    if location := args.extract_plain_text():
+        await timer.finish(f"今天{location}的天气是...")
 
 
 async def test_func():

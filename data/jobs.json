@@ -3,21 +3,21 @@
       "type": "cron",
       "hour": 20,
       "minute": 0,
-      "jitter": 10,
+      "jitter": 120,
       "group_id": 243729929,
       "args": ["今天有认真拍照吗？没有的话，就来列车上和小三月拍一张吧！"]
     },
     "ohayo": {
       "type": "cron",
       "hour": 9,
-      "user_id": 243729929,
+      "group_id": 243729929,
       "args": ["早上好呀~今天还没一起拍过照呢。"]
     },
     "hirugohann": {
       "type": "cron",
       "hour": 11,
       "minute": 30,
-      "user_id": 243729929,
+      "group_id": 243729929,
       "args": ["今天的午饭吃什么呀？如果要吃大餐的话一定要记得拍照留念哦~"]
     }
 }

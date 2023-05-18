@@ -1,3 +1,4 @@
+import datetime
 from pathlib import Path
 import nonebot
 from nonebot import require
@@ -82,3 +83,9 @@ def parse_interval(job_desc: dict):
                       seconds=seconds, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
     else:
         return
+
+def add_timer(min, args):
+    now = datetime.datetime.now()
+    timer = datetime.timedelta(minutes=min)
+    scheduler.add_job(job_private_send, "date", run_date=now+timer, args=args)
+
