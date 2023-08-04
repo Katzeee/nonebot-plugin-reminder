@@ -1,0 +1,12 @@
+[project]
+name = "test-plugins"
+version = "0.1.0"
+description = "test-plugins"
+readme = "README.md"
+requires-python = ">=3.8, <4.0"
+
+
+[tool.pyright]
+venvPath = "/home/xac/Documents/test-plugins/"
+venv = ".venv"
+

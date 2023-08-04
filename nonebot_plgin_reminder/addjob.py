@@ -1,14 +1,8 @@
 import datetime
-from pathlib import Path
 import nonebot
-from nonebot import require
-
-try:
-    scheduler = require("nonebot_plugin_apscheduler").scheduler
-except Exception:
-    scheduler = None
-
-JOBS_FILE = Path() / "data" / "jobs.json"
+from nonebot.adapters import Message, Event
+from .config import SCHEDULER
+from nonebot.log import logger
 
 
 async def job_group_send(content: str, group_id):
@@ -18,6 +12,7 @@ async def job_group_send(content: str, group_id):
     except Exception as e:
         await bot.send_group_msg(group_id=group_id, message=repr(e))
 
+
 async def job_private_send(content: str, user_id):
     bot = nonebot.get_bot()
     try:
@@ -25,9 +20,16 @@ async def job_private_send(content: str, user_id):
     except Exception as e:
         await bot.send_private_msg(user_id=user_id, message=repr(e))
 
+async def job_send(content: str, event: Event):
+    bot = nonebot.get_bot()
+    try:
+        await bot.send(event, message=eval(f'f"""{content}"""'))
+    except Exception as e:
+        await bot.send(event, message=repr(e))
 
 
 # https://blog.csdn.net/kobepaul123/article/details/123616575
+
 
 def parse_cron(job_desc: dict):
     year = job_desc.get("year")
@@ -48,15 +50,42 @@ def parse_cron(job_desc: dict):
         return
     elif group_id:
         args.append(group_id)
-        scheduler.add_job(job_group_send, "cron", year=year, month=month, day=day, week=week, day_of_week=day_of_week, hour=hour,
-                      minute=minute, second=second, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+        SCHEDULER.add_job(
+            job_group_send,
+            "cron",
+            year=year,
+            month=month,
+            day=day,
+            week=week,
+            day_of_week=day_of_week,
+            hour=hour,
+            minute=minute,
+            second=second,
+            start_date=start_date,
+            end_date=end_date,
+            jitter=jitter,
+            args=args,
+        )
     elif user_id:
         args.append(user_id)
-        scheduler.add_job(job_private_send, "cron", year=year, month=month, day=day, week=week, day_of_week=day_of_week, hour=hour,
-                      minute=minute, second=second, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+        SCHEDULER.add_job(
+            job_private_send,
+            "cron",
+            year=year,
+            month=month,
+            day=day,
+            week=week,
+            day_of_week=day_of_week,
+            hour=hour,
+            minute=minute,
+            second=second,
+            start_date=start_date,
+            end_date=end_date,
+            jitter=jitter,
+            args=args,
+        )
     else:
         return
-
 
 
 def parse_interval(job_desc: dict):
@@ -75,17 +104,39 @@ def parse_interval(job_desc: dict):
         return
     elif group_id:
         args.append(group_id)
-        scheduler.add_job(job_group_send, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes,
-                      seconds=seconds, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+        SCHEDULER.add_job(
+            job_group_send,
+            "interval",
+            weeks=weeks,
+            days=days,
+            hours=hours,
+            minutes=minutes,
+            seconds=seconds,
+            start_date=start_date,
+            end_date=end_date,
+            jitter=jitter,
+            args=args,
+        )
     elif user_id:
         args.append(user_id)
-        scheduler.add_job(job_private_send, "interval", weeks=weeks, days=days, hours=hours, minutes=minutes,
-                      seconds=seconds, start_date=start_date, end_date=end_date, jitter=jitter, args=args)
+        SCHEDULER.add_job(
+            job_private_send,
+            "interval",
+            weeks=weeks,
+            days=days,
+            hours=hours,
+            minutes=minutes,
+            seconds=seconds,
+            start_date=start_date,
+            end_date=end_date,
+            jitter=jitter,
+            args=args,
+        )
     else:
         return
+
 
 def add_timer(minutes, args):
     now = datetime.datetime.now()
     timer = datetime.timedelta(minutes=int(minutes))
-    scheduler.add_job(job_private_send, "date", run_date=now+timer, args=args)
-
+    SCHEDULER.add_job(job_send, "date", run_date=now + timer, args=args)
