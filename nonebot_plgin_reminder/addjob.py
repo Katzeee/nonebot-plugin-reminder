@@ -1,12 +1,11 @@
-import datetime
 import nonebot
-from nonebot.adapters import Message, Event
+from nonebot.adapters import Event
 from .config import SCHEDULER
-from nonebot.log import logger
+
+bot = nonebot.get_bot()
 
 
 async def job_group_send(content: str, group_id):
-    bot = nonebot.get_bot()
     try:
         await bot.send_group_msg(group_id=group_id, message=eval(f'f"""{content}"""'))
     except Exception as e:
@@ -14,14 +13,13 @@ async def job_group_send(content: str, group_id):
 
 
 async def job_private_send(content: str, user_id):
-    bot = nonebot.get_bot()
     try:
         await bot.send_private_msg(user_id=user_id, message=eval(f'f"""{content}"""'))
     except Exception as e:
         await bot.send_private_msg(user_id=user_id, message=repr(e))
 
+
 async def job_send(content: str, event: Event):
-    bot = nonebot.get_bot()
     try:
         await bot.send(event, message=eval(f'f"""{content}"""'))
     except Exception as e:
@@ -43,7 +41,7 @@ def parse_cron(job_desc: dict):
     start_date = job_desc.get("start_date")
     end_date = job_desc.get("end_date")
     jitter = job_desc.get("jitter")
-    args = job_desc.get("args")
+    args = job_desc.get("args", [])
     group_id = job_desc.get("group_id")
     user_id = job_desc.get("user_id")
     if group_id and user_id:
@@ -97,7 +95,7 @@ def parse_interval(job_desc: dict):
     start_date = job_desc.get("start_date")
     end_date = job_desc.get("end_date")
     jitter = job_desc.get("jitter")
-    args = job_desc.get("args")
+    args = job_desc.get("args", [])
     group_id = job_desc.get("group_id")
     user_id = job_desc.get("user_id")
     if group_id and user_id:
@@ -136,7 +134,5 @@ def parse_interval(job_desc: dict):
         return
 
 
-def add_timer(minutes, args):
-    now = datetime.datetime.now()
-    timer = datetime.timedelta(minutes=int(minutes))
-    SCHEDULER.add_job(job_send, "date", run_date=now + timer, args=args)
+def add_timer(run_date, args):
+    SCHEDULER.add_job(job_send, "date", run_date=run_date, args=args)
