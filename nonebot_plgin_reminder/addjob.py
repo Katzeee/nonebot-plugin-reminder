@@ -2,10 +2,9 @@ import nonebot
 from nonebot.adapters import Event
 from .config import SCHEDULER
 
-bot = nonebot.get_bot()
-
 
 async def job_group_send(content: str, group_id):
+    bot = nonebot.get_bot()
     try:
         await bot.send_group_msg(group_id=group_id, message=eval(f'f"""{content}"""'))
     except Exception as e:
@@ -13,6 +12,7 @@ async def job_group_send(content: str, group_id):
 
 
 async def job_private_send(content: str, user_id):
+    bot = nonebot.get_bot()
     try:
         await bot.send_private_msg(user_id=user_id, message=eval(f'f"""{content}"""'))
     except Exception as e:
@@ -20,6 +20,7 @@ async def job_private_send(content: str, user_id):
 
 
 async def job_send(content: str, event: Event):
+    bot = nonebot.get_bot()
     try:
         await bot.send(event, message=eval(f'f"""{content}"""'))
     except Exception as e:

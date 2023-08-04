@@ -13,7 +13,6 @@ from .addjob import parse_interval, parse_cron, add_timer
 
 global_config = get_driver().config
 config = Config.parse_obj(global_config)
-bot = nonebot.get_bot()
 
 timer = on_command("timer")
 listall = on_command("list")
