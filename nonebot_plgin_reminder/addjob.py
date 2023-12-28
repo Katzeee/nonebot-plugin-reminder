@@ -1,6 +1,10 @@
 import nonebot
+import json
+import datetime
 from nonebot.adapters import Event
-from .config import SCHEDULER
+from .config import config, SCHEDULER
+
+datetime_format = '%Y-%m-%d %H:%M:%S'
 
 
 async def job_group_send(content: str, group_id):
@@ -30,7 +34,7 @@ async def job_send(content: str, event: Event):
 # https://blog.csdn.net/kobepaul123/article/details/123616575
 
 
-def parse_cron(job_desc: dict):
+def deserialize_cron(job_desc: dict):
     year = job_desc.get("year")
     month = job_desc.get("month")
     day = job_desc.get("day")
@@ -87,7 +91,7 @@ def parse_cron(job_desc: dict):
         return
 
 
-def parse_interval(job_desc: dict):
+def deserialize_interval(job_desc: dict):
     weeks = job_desc.get("weeks") or 0
     days = job_desc.get("days") or 0
     hours = job_desc.get("hours") or 0
@@ -134,6 +138,66 @@ def parse_interval(job_desc: dict):
     else:
         return
 
+def deserialize_date(job_desc: dict):
+    date = datetime.datetime.strptime(job_desc.get("date"), datetime_format)
+    args = job_desc.get("args", [])
+    group_id = job_desc.get("group_id")
+    user_id = job_desc.get("user_id")
+    if group_id and user_id:
+        return
+    elif group_id:
+        args.append(group_id)
+        SCHEDULER.add_job(
+            job_group_send,
+            "date",
+            run_date=date,
+            args=args,
+        )
+    elif user_id:
+        args.append(user_id)
+        SCHEDULER.add_job(
+            job_private_send,
+            "date",
+            run_date=date,
+            args=args,
+        )
+    else:
+        return
+
+
+
+def serialize_jobs():
+    jobs = SCHEDULER.get_jobs()
+    jobs_list = []
+    for job in jobs:
+        job_dict = {}
+        if job.func.__name__ == 'job_group_send':
+            job_dict['group_id'] = str(job.args[1])
+        elif job.func.__name__ == 'job_private_send':
+            job_dict['user_id'] = str(job.args[1])
+        if job.trigger.__class__.__name__ == 'CronTrigger':
+            job_dict['type'] = 'cron' 
+            for f in job.trigger.fields:
+                if not f.is_default:
+                    job_dict[f.name] = str(f)
+        elif job.trigger.__class__.__name__ == 'DateTrigger':
+            job_dict['type'] = 'date'
+            job_dict['date'] = job.trigger.run_date.strftime(datetime_format)
+        else:
+            print(job.trigger.__class__.__name__)
+            job_dict['type'] = 'interval'
+        job_dict['args'] = [job.args[0]]
+        jobs_list.append(job_dict)
+    with open(config.JOBS_FILE_PATH, 'w') as f:
+        json.dump(jobs_list, f, ensure_ascii=False, indent=2)
+
 
 def add_timer(run_date, args):
-    SCHEDULER.add_job(job_send, "date", run_date=run_date, args=args)
+    event = args[1]
+    if event.message_type == 'private':
+        args[1] = event.user_id
+        SCHEDULER.add_job(job_private_send, "date", run_date=run_date, args=args)
+    elif event.message_type == 'group':
+        args[1] = event.group_id
+        SCHEDULER.add_job(job_group_send, "date", run_date=run_date, args=args)
+    serialize_jobs()

@@ -1,7 +1,7 @@
 [project]
-name = "test-plugins"
+name = "nonebot-plugin-reminder"
 version = "0.1.0"
-description = "test-plugins"
+description = "use qq robots as a reminder"
 readme = "README.md"
 requires-python = ">=3.8, <4.0"
 

@@ -2,21 +2,17 @@ import json
 import datetime
 import nonebot
 import io
-from nonebot import get_driver
 from nonebot.log import logger
 from nonebot import on_command
 from nonebot.adapters import Message, Event
 from nonebot.params import CommandArg
 from .utils import parse_time
-from .config import Config, SCHEDULER
-from .addjob import parse_interval, parse_cron, add_timer
+from .config import config, SCHEDULER
+from .addjob import *
 
-global_config = get_driver().config
-config = Config.parse_obj(global_config)
 
 timer = on_command("timer")
 listall = on_command("list")
-
 
 @timer.handle()
 async def _(event: Event, args: Message = CommandArg()):
@@ -57,10 +53,12 @@ if SCHEDULER:
     logger.info("Start parsing jobs..")
     with open(config.JOBS_FILE_PATH) as f:
         jobs_json = json.load(f)
-    for key, value in jobs_json.items():
-        if value["type"] == "cron":
-            parse_cron(value)
-        elif value["type"] == "interval":
-            parse_interval(value)
+    for job in jobs_json:
+        if job["type"] == "cron":
+            deserialize_cron(job)
+        elif job["type"] == "interval":
+            deserialize_interval(job)
+        elif job["type"] == "date":
+            deserialize_date(job)
     my_io = io.StringIO()
     SCHEDULER.print_jobs(out=my_io)
